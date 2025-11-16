@@ -1,0 +1,47 @@
+[main]
+font=DejaVu Sans Mono:size=11
+font-bold=DejaVu Sans Mono:style=Bold:size=11
+font-italic=DejaVu Sans Mono:style=Oblique:size=11
+font-bold-italic=DejaVu Sans Mono:style=Bold Oblique:size=11
+
+shell=/bin/bash
+term=xterm-256color
+pad=16x14
+dpi-aware=yes
+vertical-letter-offset=-1
+initial-window-size-chars=200x60
+## window-size-pixels=1920x1080  # keep commented to allow dynamic resizing/fullscreen
+
+[cursor]
+style=block
+blink=yes
+
+[csd]
+## Enable borders and title bar for proper window management
+## 32 is the standard height for title bar with buttons
+size=32
+
+## Optional: You can customize title and button colors if desired
+## button-color=0xffffff
+## button-hover-color=0xdddddd
+## title-color=0xffffff
+## background=0x2e3440
+
+[colors]
+background=0x1e1e2e
+foreground=0xdcd7ba
+selection-background=0x44475a
+selection-foreground=0xffffff
+## background-opacity=0.95  # optional, needs compositor
+
+[mouse]
+alternate-scroll-mode=yes
+
+
+[scrollback]
+lines=10000
+
+[key-bindings]
+fullscreen=F11
+
+

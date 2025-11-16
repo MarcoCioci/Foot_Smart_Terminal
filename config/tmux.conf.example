@@ -1,0 +1,23 @@
+# =============================================================================
+#  tmux Example Configuration for Foot + Wayland
+#  This file is safe for publishing and avoids the mouse-selection bug.
+#  Copy to:
+#       ~/.tmux.conf
+# =============================================================================
+
+# Disable tmux mouse to allow Wayland/Foot to handle text selection natively.
+# This avoids the "selection disappears on release" issue.
+# NOTE: If you need mouse behavior inside tmux, enable copy-mode bindings instead.
+#set -g mouse on
+
+# Minimalist status bar styling
+set -g status off
+
+set -g window-status-format ' #I:#W '
+set -g window-status-current-format ' #I:#W '
+
+set -g window-status-style 'fg=#dcd7ba,bg=#1e1e2e'
+set -g window-status-current-style 'fg=#1e1e2e,bg=#dcd7ba'
+
+# Terminal capabilities
+set -g default-terminal "tmux-256color"

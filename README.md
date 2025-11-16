@@ -105,5 +105,6 @@
 - Alternate screen apps (e.g., `less`, `vim`, `htop`) manage scrolling independently; history lives in the underlying shell pane.
 
 
-
-
+### 2025-11 Update: Selection Fix
+Touchpad selection disappearing was caused by `set -g mouse on` in tmux.
+Disable it to allow Wayland/foot to manage selection correctly.
