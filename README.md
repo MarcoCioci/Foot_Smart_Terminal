@@ -1,24 +1,26 @@
-# **Smart Foot Terminal (Wayland Foot + tmux Single-Window Preserver)**
+# **Foot Smart Terminal (Wayland Foot + tmux Single-Window Preserver)**
 
-A small utility that opens a new **Foot** window attached to an existing **tmux** session while **preserving one pane’s state** (history, scrollback), and **closing all other Foot windows** to avoid clutter.
+A small utility that opens a new **Foot** window attached to an existing **tmux** session while **preserving one pane’s state** (history, scrollback, running jobs), and **closing all other Foot windows** to avoid clutter.
 
-This gives you a consistent, always-clean terminal workflow on **Wayland**, where normal focusing/raising of windows is NOT possible.
+This provides a consistent, clean terminal workflow on **Wayland**, where focusing/raising existing windows is not possible.
 
-* Default tmux session: `main` (override with `SESSION_NAME=...`)
-* Default Foot app-id: `foot-terminal`
-* Default terminal setting inside Foot: `foot-direct`
-* Works fully under **GNOME Wayland**, **Sway**, **Hyprland**, **KDE Plasma Wayland**
+Default behavior:
+
+* tmux session: `main` (override with `SESSION_NAME=...`)
+* Foot app-id: `foot-terminal`
+* Terminal value inside Foot: `foot-direct`
+* Fully compatible with **GNOME Wayland**, **Sway**, **Hyprland**, **KDE Plasma Wayland**
 
 ---
 
 ## **Requirements**
 
-* Linux on **Wayland** (GNOME, KDE, Sway, Hyprland…)
+* A Linux system running Wayland (GNOME, KDE, Sway, Hyprland, etc.)
 * `foot`
 * `tmux`
 * Common UNIX tools: `pgrep`, `ps`, `awk`
 
-Everything is already installed on Ubuntu, except foot:
+Install dependencies on Ubuntu:
 
 ```bash
 sudo apt install foot tmux
@@ -37,50 +39,52 @@ chmod +x install.sh
 
 This installs:
 
-* `focus_or_spawn_terminal.sh` → `~/.local/bin`
-* `foot-smart.desktop` → `~/.local/share/applications`
+* `foot_smart_terminal` → `~/.local/bin`
+* `foot-smart-terminal.desktop` → `~/.local/share/applications`
 
-Now search **Smart Foot Terminal** in your GNOME launcher.
+You can now search **Smart Foot Terminal** from your application launcher.
 
 ---
 
 ## **Usage**
 
-### From launcher
+### **From the launcher**
 
-Open **Smart Foot Terminal** like any application.
+Start **Smart Foot Terminal** like any regular application.
 
-### From CLI
+### **From the terminal**
 
 ```bash
-~/.local/bin/focus_or_spawn_terminal.sh
+foot_smart_terminal
 ```
 
-What happens:
+What happens internally:
 
 1. Your tmux session (`main`) is inspected.
-2. The **first pane** is marked as "preserved".
-3. A new Foot window attaches to that pane.
-4. All other Foot windows are closed.
-5. The preserved pane keeps **scrollback**, **history**, and **running jobs**.
+2. The **first pane** is treated as the “preserved” pane.
+3. A new Foot window attaches to that tmux pane.
+4. All *other* Foot windows are closed.
+5. The preserved pane keeps **scrollback**, **history**, and any running processes.
 
+---
 
-### Why this matters on Wayland
+## **Why this matters on Wayland**
 
-* Wayland/Foot performs text selection natively.
-* tmux "mouse mode" breaks selection, making it yellow and temporary.
-* With this config:
+* Foot provides its own native text selection.
+* tmux mouse mode interferes with that (especially on Wayland).
+* The configuration used here ensures:
 
-  * **Natural Foot text selection works**
-  * **Scrollback is one keypress away (Ctrl+Space)**
+  * **native Foot selection works normally**
+  * **scrollback is always available via Ctrl+Space**
+  * **tmux does not steal Wayland’s selection events**
 
-Perfect hybrid mode.
+This results in a hybrid workflow with both tmux scrollback and Foot-native selection working together.
 
 ---
 
 ## **Optional: GNOME Keyboard Shortcut**
 
-### GUI method
+### GUI Method
 
 1. Settings → Keyboard → Keyboard Shortcuts
 2. Add Custom Shortcut
@@ -89,18 +93,18 @@ Perfect hybrid mode.
    * **Command:**
 
      ```bash
-     sh -lc "$HOME/.local/bin/focus_or_spawn_terminal.sh"
+     sh -lc "$HOME/.local/bin/foot_smart_terminal"
      ```
-3. Assign shortcut (e.g. **Super+Return** or **Ctrl+Alt+T**).
+3. Assign your preferred shortcut (e.g., **Super+Return**, **Ctrl+Alt+T**).
 
-### CLI method
+### CLI Method
 
 ```bash
 path="/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/smart-foot/"
 gsettings set org.gnome.settings-daemon.plugins.media-keys custom-keybindings "['$path']"
 gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$path name "Smart Foot Terminal"
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$path command "sh -lc \"$HOME/.local/bin/focus_or_spawn_terminal.sh\""
-gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$path binding "<Super>Return"
+gsettings set org.gnome/settings-daemon/plugins/media-keys/custom-keybinding:$path command "sh -lc \"$HOME/.local/bin/foot_smart_terminal\""
+gsettings set org.gnome/settings-daemon/plugins/media-keys/custom-keybinding:$path binding "<Super>Return"
 ```
 
 ---
@@ -108,84 +112,85 @@ gsettings set org.gnome.settings-daemon.plugins.media-keys.custom-keybinding:$pa
 ## **Uninstall**
 
 ```bash
-rm -f ~/.local/bin/focus_or_spawn_terminal.sh
-rm -f ~/.local/share/applications/foot-smart.desktop
+rm -f ~/.local/bin/foot_smart_terminal
+rm -f ~/.local/share/applications/foot-smart-terminal.desktop
 update-desktop-database ~/.local/share/applications || true
 ```
 
 ---
 
-## **How it works (the design)**
+## **How it works**
 
-### **Why preserving a single pane?**
+### **Preserving a single pane**
 
-Because Wayland *does not allow* scripts to focus or raise an existing terminal window.
-So instead:
+Wayland does not allow scripts to raise or focus an existing terminal window.
+Instead:
 
-* We always create a **new** Foot window
-* Then instantly kill all Foot windows **except** the one tied to the preserved tmux pane
-* Result:
+* the script always opens a new Foot window,
+* determines which window corresponds to the preserved tmux pane,
+* and closes all other Foot windows.
 
-  * The new window becomes **the only active one**
-  * The preserved pane keeps its entire history and ongoing jobs
-  * The workflow always stays clean
+Result:
 
-### **Why snapshot Foot PIDs before launching?**
+* the new window becomes the only one
+* the preserved tmux pane keeps its history and job state
+* the workflow stays clean and predictable
 
-To avoid killing the Foot window we just opened.
+### **Why Foot PIDs are captured before launching**
 
-### **How do we detect the preserved window?**
+This prevents accidentally killing the brand-new Foot window that the script itself launches.
 
-We map:
+### **How the preserved window is identified**
+
+We use process hierarchy:
 
 ```
-tmux pane PID  →  its parent Foot window PID
+tmux pane PID → its parent Foot window PID
 ```
 
-Any Foot window not parenting the preserved pane is removed.
+Any Foot process not matching that relationship is removed.
 
 ---
 
-## **Configuration knobs**
+## **Configuration**
 
-All configurable via environment variables:
+Environment variables allow customization:
 
 ```bash
 SESSION_NAME=dev \
 APP_ID=foot-terminal \
 TERM_FOR_FOOT=foot-direct \
-~/.local/bin/focus_or_spawn_terminal.sh
+foot_smart_terminal
 ```
 
 ---
 
 ## **Caveats / Warnings**
 
-* This script **kills all Foot windows not tied to the preserved pane**.
-* If those windows run **bare shells or commands outside tmux**, they will end.
-* But if those windows run **tmux panes**, the jobs survive — tmux is a server.
+* This script **will close all Foot windows not tied to the preserved tmux pane**.
+* If those windows were running shells *outside tmux*, those shells terminate.
+* If they were running tmux panes, **jobs survive** (because tmux is a server).
 
 **Rule of thumb:**
-Always work inside tmux. Everything survives window cleanup.
+Always do your work inside tmux. Everything survives window cleanup.
 
-**Note:**
-Applications using alternate screen (vim, htop, less) handle scroll independently.
+Applications using alternate screen (vim, htop, less, etc.) manage scroll independently.
 
 ---
 
-## **2025–11 Update: Selection Fix (Wayland)**
+## **2025-11 Update: Selection Fix (Wayland)**
 
-If selection disappears as soon as you lift your fingers:
+If text selection disappears as soon as you attempt to scroll, it usually happens because:
 
-✔ It was caused by `set -g mouse on` inside tmux.
-✘ tmux mouse mode steals pointer events on Wayland.
+* `set -g mouse on` in tmux breaks Wayland selection
+* Wayland terminals rely on native selection mechanics
 
 **Solution:**
-Leave tmux mouse **off**, and use:
 
-* **native Foot selection**
-* **Ctrl+Space** to enter tmux scroll mode
+* Keep tmux mouse mode **off**
+* Use native Foot selection normally
+* Use **Ctrl+Space** to toggle tmux scrollback mode when needed
 
-This gives stable behavior on all Wayland compositors.
+This configuration is stable across all major Wayland compositors.
 
 ---
