@@ -5,19 +5,45 @@
 #       ~/.tmux.conf
 # =============================================================================
 
-# Disable tmux mouse to allow Wayland/Foot to handle text selection natively.
-# This avoids the "selection disappears on release" issue.
-# NOTE: If you need mouse behavior inside tmux, enable copy-mode bindings instead.
-#set -g mouse on
 
-# Minimalist status bar styling
+##### WAYLAND/FOOT SELECTION FIX #####
+# On Wayland terminals, tmux mouse events conflict with the compositor.
+# If mouse is ON, tmux steals selection events → text becomes yellow,
+# and the highlight disappears on release.
+#
+# Therefore:
+#   - Leave mouse OFF for normal Foot/Wayland selection.
+#   - Use copy-mode ONLY when you want scrollback inside tmux.
+set -g mouse off
+
+
+##### MINIMAL STATUS BAR (OPTIONAL) #####
+# The project prefers a clean terminal, so the status bar is disabled.
+# You can re-enable it by removing the line below.
 set -g status off
 
 set -g window-status-format ' #I:#W '
 set -g window-status-current-format ' #I:#W '
-
 set -g window-status-style 'fg=#dcd7ba,bg=#1e1e2e'
 set -g window-status-current-style 'fg=#1e1e2e,bg=#dcd7ba'
 
-# Terminal capabilities
+
+##### TERMINAL CAPABILITIES #####
+# foot-direct provides full 24-bit color and correct terminfo.
+# This example stays generic.
 set -g default-terminal "tmux-256color"
+
+
+##### SCROLLBACK MODE TOGGLE (WAYLAND-SAFE) #####
+# Wayland terminals cannot scroll inside tmux history directly.
+# You must enter tmux copy-mode to scroll history.
+#
+# Ctrl + Space:
+#   - Enters copy-mode if not already in it
+#   - Exits copy-mode if already inside
+#
+# This gives a fast, predictable scrollback toggle that does NOT
+# break Foot's native selection.
+bind -n C-Space copy-mode -e
+bind -T copy-mode C-Space send-keys -X cancel
+bind -T copy-mode-vi C-Space send-keys -X cancel
